@@ -2,15 +2,13 @@ package com.example.rsupport.noticeboard.controller;
 
 import com.example.rsupport.noticeboard.common.ApiResult;
 import com.example.rsupport.noticeboard.dto.NoticeCreateRequestDTO;
+import com.example.rsupport.noticeboard.dto.NoticeDeleteRequestDTO;
 import com.example.rsupport.noticeboard.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/board/notice")
@@ -31,6 +29,18 @@ public class NoticeController {
             return ApiResult.ok("공지사항이 등록되었습니다.");
         } catch (IllegalArgumentException e) {
             return ApiResult.error(e.getMessage(), "E1001", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/delete")
+    @Operation(summary = "공지사항 삭제", description = "공지사항 삭제")
+    public ResponseEntity<ApiResult> deleteNotice(
+            @RequestBody NoticeDeleteRequestDTO noticeDeleteRequestDTO) {
+        try {
+            noticeService.deleteNotice(noticeDeleteRequestDTO);
+            return ApiResult.ok("공지사항이 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ApiResult.error(e.getMessage(), "E1002", HttpStatus.BAD_REQUEST);
         }
     }
 }

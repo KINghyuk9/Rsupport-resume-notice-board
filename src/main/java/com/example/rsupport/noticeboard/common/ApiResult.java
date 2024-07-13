@@ -20,7 +20,7 @@ public class ApiResult {
     }
 
     public static ResponseEntity<ApiResult> ok(Object data) {
-        return ResponseEntity.ok(new ApiResult(true, "success", null, data));
+        return ResponseEntity.ok(new ApiResult(true, "success", "200", data));
     }
 
     public static ResponseEntity<ApiResult> error(String message, String code, HttpStatus status) {
