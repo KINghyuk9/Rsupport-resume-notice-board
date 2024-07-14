@@ -1,8 +1,12 @@
 package com.example.rsupport.noticeboard.common;
 
 import lombok.Data;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 public class ApiResult {
@@ -21,6 +25,20 @@ public class ApiResult {
 
     public static ResponseEntity<ApiResult> ok(Object data) {
         return ResponseEntity.ok(new ApiResult(true, "success", "200", data));
+    }
+
+    public static ResponseEntity<ApiResult> ok(Page<?> page){
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", page.getContent());
+        result.put("totalPages", page.getTotalPages());
+        result.put("totalElements", page.getTotalElements());
+        result.put("size", page.getSize());
+        result.put("number", page.getNumber());
+        result.put("numberOfElements", page.getNumberOfElements());
+        result.put("first", page.isFirst());
+        result.put("last", page.isLast());
+        result.put("empty", page.isEmpty());
+        return ResponseEntity.ok(new ApiResult(true, "success", "200", result));
     }
 
     public static ResponseEntity<ApiResult> error(String message, String code, HttpStatus status) {

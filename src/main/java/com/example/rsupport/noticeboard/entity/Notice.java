@@ -1,6 +1,6 @@
 package com.example.rsupport.noticeboard.entity;
 
-import com.example.rsupport.noticeboard.dto.NoticeCreateRequestDTO;
+import com.example.rsupport.noticeboard.dto.request.NoticeCreateRequestDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -31,6 +31,7 @@ public class Notice {
     private String author;
     @Column(nullable = false)
     private String postPw;
+    private int views;
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
@@ -38,9 +39,9 @@ public class Notice {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
+    private LocalDateTime createDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedDate;
 
     @OneToMany(mappedBy = "noticeBoard", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("noticeBoard")
@@ -53,8 +54,9 @@ public class Notice {
         this.postPw = encoder.encode(request.getPostPw());
         this.startDate = request.getStartDate();
         this.endDate = request.getEndDate();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createDate = LocalDateTime.now();
+        this.updatedDate = LocalDateTime.now();
+        this.views = 0;
     }
 
     public static Notice from(NoticeCreateRequestDTO dto, PasswordEncoder encoder){
@@ -65,5 +67,9 @@ public class Notice {
         for (FileTable file : files) {
             file.setNoticeBoard(this);
         }
+    }
+
+    public void incrementViews(){
+        this.views++;
     }
 }

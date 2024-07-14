@@ -1,6 +1,6 @@
 package com.example.rsupport.noticeboard.common;
 
-import com.example.rsupport.noticeboard.dto.FileSaveResultDTO;
+import com.example.rsupport.noticeboard.dto.common.FileSaveResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

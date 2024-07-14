@@ -1,4 +1,4 @@
-package com.example.rsupport.noticeboard.dto;
+package com.example.rsupport.noticeboard.dto.request;
 
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;

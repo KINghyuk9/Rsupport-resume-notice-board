@@ -1,15 +1,22 @@
 package com.example.rsupport.noticeboard.service;
 
 import com.example.rsupport.noticeboard.common.FileManager;
-import com.example.rsupport.noticeboard.dto.FileSaveResultDTO;
-import com.example.rsupport.noticeboard.dto.NoticeCreateRequestDTO;
-import com.example.rsupport.noticeboard.dto.NoticeDeleteRequestDTO;
+import com.example.rsupport.noticeboard.dto.common.FileListDTO;
+import com.example.rsupport.noticeboard.dto.common.FileSaveResultDTO;
+import com.example.rsupport.noticeboard.dto.request.NoticeCreateRequestDTO;
+import com.example.rsupport.noticeboard.dto.request.NoticeDeleteRequestDTO;
+import com.example.rsupport.noticeboard.dto.response.NoticeDetailResponseDTO;
+import com.example.rsupport.noticeboard.dto.response.NoticeResponseDTO;
 import com.example.rsupport.noticeboard.entity.FileTable;
 import com.example.rsupport.noticeboard.entity.Notice;
 import com.example.rsupport.noticeboard.repository.FileTableRepository;
 import com.example.rsupport.noticeboard.repository.NoticeRepository;
+import com.example.rsupport.noticeboard.specification.NoticeSpecification;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -72,5 +79,57 @@ public class NoticeService {
         }
 
         noticeRepository.delete(notice);
+    }
+
+    @Transactional
+    public Page<NoticeResponseDTO> getNoticeList(Pageable pageable){
+        return noticeRepository.findAll(pageable)
+                .map(this::convertToNoticeDTO);
+    }
+
+    @Transactional
+    public Page<NoticeResponseDTO> getNoticeSearch(String searchType, String keyword, Pageable pageable) {
+        Specification<Notice> spec = NoticeSpecification.search(searchType, keyword);
+
+        return noticeRepository.findAll(spec, pageable)
+                .map(this::convertToNoticeDTO);
+    }
+
+
+    private NoticeResponseDTO convertToNoticeDTO(Notice notice) {
+        return new NoticeResponseDTO(
+                notice.getNoticeId(),
+                notice.getTitle(),
+                notice.getContent(),
+                notice.getAuthor(),
+                notice.getViews(),
+                notice.getStartDate()
+        );
+    }
+
+    @Transactional
+    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new IllegalArgumentException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+        notice.incrementViews();
+        noticeRepository.save(notice);
+
+        List<FileTable> fileTables = fileTableRepository.findByNoticeBoard(notice);
+        List<FileListDTO> files = fileTables.stream()
+                .map(file -> new FileListDTO(file.getFileId(), file.getFileName()))
+                .collect(Collectors.toList());
+
+        return NoticeDetailResponseDTO.of(
+                notice.getNoticeId(),
+                notice.getTitle(),
+                notice.getContent(),
+                notice.getAuthor(),
+                notice.getCreateDate(),
+                notice.getUpdatedDate(),
+                notice.getStartDate(),
+                notice.getEndDate(),
+                notice.getViews(),
+                files
+        );
     }
 }
