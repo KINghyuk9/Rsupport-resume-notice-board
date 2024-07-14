@@ -1,13 +1,18 @@
 package com.example.rsupport.noticeboard.dto.response;
 
 import com.example.rsupport.noticeboard.dto.common.FileListDTO;
+import com.example.rsupport.noticeboard.entity.Notice;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NoticeDetailResponseDTO {
 
     private Long noticeId;
@@ -25,20 +30,17 @@ public class NoticeDetailResponseDTO {
     private int views;
     private List<FileListDTO> files;
 
-    public NoticeDetailResponseDTO(Long noticeId,String title, String content, String author, LocalDateTime createdDate, LocalDateTime updatedDate, LocalDateTime startDate, LocalDateTime endDate, int views, List<FileListDTO> files) {
-        this.noticeId = noticeId;
-        this.title = title;
-        this.content = content;
-        this.author = author;
-        this.createdDate = createdDate;
-        this.updatedDate = updatedDate;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.views = views;
-        this.files = files;
-    }
-
-    public static NoticeDetailResponseDTO of(Long noticeId, String title, String content, String author, LocalDateTime createdDate,LocalDateTime updatedDate, LocalDateTime startDate, LocalDateTime endDate, int views, List<FileListDTO> files) {
-        return new NoticeDetailResponseDTO(noticeId, title, content, author, createdDate, updatedDate, startDate, endDate, views, files);
+    public static NoticeDetailResponseDTO of(Notice notice, List<FileListDTO> files) {
+        return new NoticeDetailResponseDTO(
+                notice.getNoticeId(),
+                notice.getTitle(),
+                notice.getContent(),
+                notice.getAuthor(),
+                notice.getCreateDate(),
+                notice.getUpdatedDate(),
+                notice.getStartDate(),
+                notice.getEndDate(),
+                notice.getViews(),
+                files);
     }
 }

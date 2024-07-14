@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class NoticeService {
@@ -49,7 +48,7 @@ public class NoticeService {
 
                 List<FileTable> fileTables = savedFiles.stream()
                         .map(file -> new FileTable(file.getFileName(), file.getFilePath()))
-                        .collect(Collectors.toList());
+                        .toList();
 
                 createNotice.setFiles(fileTables);
             }
@@ -84,7 +83,7 @@ public class NoticeService {
     @Transactional
     public Page<NoticeResponseDTO> getNoticeList(Pageable pageable){
         return noticeRepository.findAll(pageable)
-                .map(this::convertToNoticeDTO);
+                .map(NoticeResponseDTO::fromNotice);
     }
 
     @Transactional
@@ -92,19 +91,7 @@ public class NoticeService {
         Specification<Notice> spec = NoticeSpecification.search(searchType, keyword);
 
         return noticeRepository.findAll(spec, pageable)
-                .map(this::convertToNoticeDTO);
-    }
-
-
-    private NoticeResponseDTO convertToNoticeDTO(Notice notice) {
-        return new NoticeResponseDTO(
-                notice.getNoticeId(),
-                notice.getTitle(),
-                notice.getContent(),
-                notice.getAuthor(),
-                notice.getViews(),
-                notice.getStartDate()
-        );
+                .map(NoticeResponseDTO::fromNotice);
     }
 
     @Transactional
@@ -117,19 +104,10 @@ public class NoticeService {
         List<FileTable> fileTables = fileTableRepository.findByNoticeBoard(notice);
         List<FileListDTO> files = fileTables.stream()
                 .map(file -> new FileListDTO(file.getFileId(), file.getFileName()))
-                .collect(Collectors.toList());
+                .toList();
 
         return NoticeDetailResponseDTO.of(
-                notice.getNoticeId(),
-                notice.getTitle(),
-                notice.getContent(),
-                notice.getAuthor(),
-                notice.getCreateDate(),
-                notice.getUpdatedDate(),
-                notice.getStartDate(),
-                notice.getEndDate(),
-                notice.getViews(),
-                files
+                notice, files
         );
     }
 }
