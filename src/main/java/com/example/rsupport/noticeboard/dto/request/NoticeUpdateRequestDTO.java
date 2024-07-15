@@ -1,6 +1,8 @@
 package com.example.rsupport.noticeboard.dto.request;
 
 import com.example.rsupport.noticeboard.entity.Notice;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,13 +15,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NoticeUpdateRequestDTO {
+    @NotNull
     private Long noticeId;
+    @NotBlank
     private String title;
+    @NotBlank
     private String content;
+    @NotBlank
     private String author;
+    @NotBlank
     private String userId;
+    @NotBlank
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
+    @NotBlank
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
 
