@@ -15,10 +15,9 @@ public class NoticeCreateRequestDTO {
     private String title;
     private String content;
     private String author;
-    private String postPw;
+    private String userId;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
-    private MultipartFile[] files;
 }

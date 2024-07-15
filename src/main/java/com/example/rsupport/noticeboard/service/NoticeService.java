@@ -1,12 +1,11 @@
 package com.example.rsupport.noticeboard.service;
 
-import com.example.rsupport.noticeboard.exception.InvalidPasswordException;
-import com.example.rsupport.noticeboard.exception.NoticeNotFoundException;
+import com.example.rsupport.noticeboard.dto.response.NoticeCreateResponseDTO;
+import com.example.rsupport.noticeboard.dto.response.NoticeUpdateResponseDTO;
+import com.example.rsupport.noticeboard.exception.*;
 import com.example.rsupport.noticeboard.util.FileManager;
-import com.example.rsupport.noticeboard.dto.common.FileListDTO;
 import com.example.rsupport.noticeboard.dto.common.FileSaveResultDTO;
 import com.example.rsupport.noticeboard.dto.request.NoticeCreateRequestDTO;
-import com.example.rsupport.noticeboard.dto.request.NoticeDeleteRequestDTO;
 import com.example.rsupport.noticeboard.dto.request.NoticeUpdateRequestDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeDetailResponseDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeResponseDTO;
@@ -15,20 +14,18 @@ import com.example.rsupport.noticeboard.entity.Notice;
 import com.example.rsupport.noticeboard.repository.FileTableRepository;
 import com.example.rsupport.noticeboard.repository.NoticeRepository;
 import com.example.rsupport.noticeboard.specification.NoticeSpecification;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class NoticeService {
@@ -36,25 +33,28 @@ public class NoticeService {
     private static final Logger logger = LoggerFactory.getLogger(NoticeService.class);
 
     private final NoticeRepository noticeRepository;
-    private final PasswordEncoder encoder;
     private final FileManager fileManager;
     private final FileTableRepository fileTableRepository;
 
     @Autowired
-    public NoticeService(NoticeRepository noticeRepository, PasswordEncoder encoder, FileManager fileManager, FileTableRepository fileTableRepository) {
+    public NoticeService(NoticeRepository noticeRepository, FileManager fileManager, FileTableRepository fileTableRepository) {
         this.noticeRepository = noticeRepository;
-        this.encoder = encoder;
         this.fileManager = fileManager;
         this.fileTableRepository = fileTableRepository;
     }
 
     @Transactional
-    public void createNotice(NoticeCreateRequestDTO dto) {
+    public NoticeCreateResponseDTO createNotice(NoticeCreateRequestDTO dto, MultipartFile[] files) {
         try {
-            Notice createNotice = Notice.from(dto, encoder);
+            Notice createNotice = Notice.from(dto);
 
-            if (dto.getFiles() != null && dto.getFiles().length > 0) {
-                List<FileSaveResultDTO> savedFiles = fileManager.saveFile(dto.getFiles());
+            if (files != null && files.length > 0) {
+                List<FileSaveResultDTO> savedFiles;
+                try {
+                    savedFiles = fileManager.saveFile(files);
+                } catch (Exception e){
+                    throw new FileSaveException("file save failed.");
+                }
 
                 List<FileTable> fileTables = savedFiles.stream()
                         .map(file -> new FileTable(file.getFileName(), file.getFilePath(), createNotice))
@@ -62,91 +62,89 @@ public class NoticeService {
 
                 createNotice.setFiles(fileTables);
             }
-
-            noticeRepository.save(createNotice);
+            Notice savedNotice = noticeRepository.save(createNotice);
+            return new NoticeCreateResponseDTO(savedNotice);
         } catch (Exception e) {
             throw new IllegalArgumentException("공지사항 등록 중 문제가 발생하였습니다.");
         }
     }
 
     @Transactional
-    public void deleteNotice(NoticeDeleteRequestDTO dto) {
-        Notice notice = noticeRepository.findById(dto.getNoticeId())
-                .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
-        passwordCheck(notice, dto.getPostPw());
-
-        List<FileTable> fileTables = notice.getFiles();
-        if (fileTables != null && !fileTables.isEmpty()) {
-            fileTableRepository.deleteAll(fileTables);
-            deleteExistingFiles(notice);
-        }
-
-        noticeRepository.delete(notice);
-    }
-
-    @Transactional
-    public Page<NoticeResponseDTO> getNoticeList(Pageable pageable){
-        return noticeRepository.findAll(pageable)
-                .map(NoticeResponseDTO::fromNotice);
-    }
-
-    @Transactional
-    public Page<NoticeResponseDTO> getNoticeSearch(String searchType, String keyword, Pageable pageable) {
-        Specification<Notice> spec = NoticeSpecification.search(searchType, keyword);
-
-        return noticeRepository.findAll(spec, pageable)
-                .map(NoticeResponseDTO::fromNotice);
-    }
-
-    @Transactional
-    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId) {
-        Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
-        notice.incrementViews();
-        noticeRepository.save(notice);
-
-        List<FileTable> fileTables = fileTableRepository.findByNoticeBoard(notice);
-        List<FileListDTO> files = fileTables.stream()
-                .map(file -> new FileListDTO(file.getFileId(), file.getFileName()))
-                .toList();
-
-        return NoticeDetailResponseDTO.of(
-                notice, files
-        );
-    }
-
-    @Transactional
-    public Notice updateNotice(NoticeUpdateRequestDTO dto) {
+    public void deleteNotice(Long noticeId, String userId) {
         try {
-            Notice notice = noticeRepository.findById(dto.getNoticeId())
+            Notice notice = noticeRepository.findById(noticeId)
                     .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
+            userIdChecker(notice, userId);
 
-            passwordCheck(notice, dto.getPostPw());
-
-            if ("Y".equals(dto.getFileChangeYn())) {
+            List<FileTable> fileTables = notice.getFiles();
+            if (fileTables != null && !fileTables.isEmpty()) {
+                fileTableRepository.deleteAll(fileTables);
                 deleteExistingFiles(notice);
             }
 
+            noticeRepository.delete(notice);
+            logger.info("공지사항 삭제 성공. ID: {}", noticeId);
+        }catch (UserIdMismatchException e){
+            logger.error("작성자만 삭제할 수 있습니다.", e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("공지사항 삭제 중 문제가 발생했습니다.", e);
+            throw new NoticeDeleteException("공지사항 삭제 중 문제가 발생했습니다.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId) {
+        try {
+            Notice notice = noticeRepository.findById(noticeId)
+                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
+            notice.incrementViews();
+            noticeRepository.save(notice);
+
+            return new NoticeDetailResponseDTO(notice);
+        } catch (Exception e) {
+            logger.error("공지사항 조회 중 문제가 발생했습니다.", e);
+            throw new NoticeDetailException("공지사항 조회 중 문제가 발생했습니다.");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public Page<NoticeResponseDTO> getNoticeSearch(String searchType, String keyword, Pageable pageable) {
+        try {
+            Specification<Notice> spec = NoticeSpecification.search(searchType, keyword);
+            return noticeRepository.findAll(spec, pageable)
+                    .map(NoticeResponseDTO::fromNotice);
+        } catch (Exception e) {
+            logger.error("공지사항 조건 검색 중 문제가 발생했습니다.", e);
+            throw new NoticeSearchException("공지사항 조건 검색 중 문제가 발생했습니다.");
+        }
+    }
+
+    @Transactional
+    public NoticeUpdateResponseDTO updateNotice(NoticeUpdateRequestDTO dto, MultipartFile[] files) {
+        try {
+            Notice notice = noticeRepository.findById(dto.getNoticeId())
+                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
+            userIdChecker(notice, dto.getUserId());
+            deleteExistingFiles(notice);
             updateNoticeDetails(dto, notice);
-
-            if (dto.getFiles() != null && dto.getFiles().length > 0) {
-                addNewFiles(dto, notice);
+            if (files != null && files.length > 0) {
+                addNewFiles(files, notice);
             }
-
             Notice updatedNotice = noticeRepository.save(notice);
-            logger.info("게시글 정보 업데이트 성공. ID: {}", updatedNotice.getNoticeId());
-
-            return updatedNotice;
-
-        } catch (IOException e) {
+            return new NoticeUpdateResponseDTO(updatedNotice);
+        } catch (UserIdMismatchException e){
+            logger.error("작성자만 삭제할 수 있습니다.", e);
+            throw e;
+        }catch (Exception e) {
             logger.error("파일 처리 중 문제가 발생하였습니다.", e);
             throw new IllegalArgumentException("파일 처리 중 문제가 발생하였습니다.", e);
         }
     }
 
-    private void passwordCheck(Notice notice, String postPw) {
-        if (!encoder.matches(postPw, notice.getPostPw())) {
-            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+    private void userIdChecker(Notice notice, String userId) {
+        if (!notice.getUserId().equals(userId)) {
+            throw new UserIdMismatchException("작성자만 수정할 수 있습니다.");
         }
     }
 
@@ -157,7 +155,7 @@ public class NoticeService {
 
         List<String> existingFilePaths = existingFiles.stream()
                 .map(file -> file.getFilePath() + '/' + file.getFileName())
-                .collect(Collectors.toList());
+                        .toList();
         fileManager.deleteFiles(existingFilePaths);
         logger.info("기존 파일 삭제 성공");
 
@@ -168,18 +166,20 @@ public class NoticeService {
         dto.updateNotice(notice);
     }
 
-    private void addNewFiles(NoticeUpdateRequestDTO dto, Notice notice) throws IOException {
+    private void addNewFiles(MultipartFile[] files, Notice notice) {
         try {
-            List<FileSaveResultDTO> savedFiles = fileManager.saveFile(dto.getFiles());
-            List<FileTable> addedFiles = savedFiles.stream()
-                    .map(fileDto -> new FileTable(fileDto.getFileName(), fileDto.getFilePath(), notice))
-                    .collect(Collectors.toList());
-            fileTableRepository.saveAll(addedFiles);
-            logger.info("새 파일 정보를 DB에 저장 성공. 저장된 파일 수: {}", addedFiles.size());
-            notice.setFiles(addedFiles);
-        }catch (Exception e){
-            logger.error("파일 처리 중 문제가 발생하였습니다.", e);
-            throw new IllegalArgumentException("파일 처리 중 문제가 발생하였습니다.", e);
+            List<FileSaveResultDTO> savedFiles = fileManager.saveFile(files);
+            List<FileTable> fileTables = savedFiles.stream()
+                    .map(file -> new FileTable(file.getFileName(), file.getFilePath(), notice))
+                    .toList();
+            if (notice.getFiles() != null) {
+                notice.getFiles().addAll(fileTables); // 기존 리스트에 새 파일을 추가합니다.
+            } else {
+                notice.setFiles(fileTables); // 파일 목록이 null인 경우 새 리스트로 설정합니다.
+            }
+        } catch (Exception e) {
+            logger.error("새 파일을 추가하는 중 문제가 발생했습니다.", e);
+            throw new FileSaveException("새 파일을 추가하는 중 문제가 발생했습니다.");
         }
     }
 }

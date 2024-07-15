@@ -32,7 +32,7 @@ public class Notice {
     @Column(nullable = false)
     private String author;
     @Column(nullable = false)
-    private String postPw;
+    private String userId;
     private int views;
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -50,11 +50,11 @@ public class Notice {
     @ToString.Exclude
     private List<FileTable> files = new ArrayList<>();
 
-    private Notice(NoticeCreateRequestDTO request, PasswordEncoder encoder){
+    private Notice(NoticeCreateRequestDTO request){
         this.title = request.getTitle();
         this.content = request.getContent();
         this.author = request.getAuthor();
-        this.postPw = encoder.encode(request.getPostPw());
+        this.userId = request.getUserId();
         this.startDate = request.getStartDate();
         this.endDate = request.getEndDate();
         this.createDate = LocalDateTime.now();
@@ -62,8 +62,8 @@ public class Notice {
         this.views = 0;
     }
 
-    public static Notice from(NoticeCreateRequestDTO dto, PasswordEncoder encoder){
-        return new Notice(dto, encoder);
+    public static Notice from(NoticeCreateRequestDTO dto){
+        return new Notice(dto);
     }
     public void setFiles(List<FileTable> files) {
         this.files = files;

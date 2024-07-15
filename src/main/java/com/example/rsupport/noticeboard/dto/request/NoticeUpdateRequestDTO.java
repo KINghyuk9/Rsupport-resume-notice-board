@@ -17,13 +17,11 @@ public class NoticeUpdateRequestDTO {
     private String title;
     private String content;
     private String author;
-    private String postPw;
-    private String fileChangeYn;
+    private String userId;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
-    private MultipartFile[] files;
 
     public void updateNotice(Notice notice) {
         notice.setTitle(this.title);
