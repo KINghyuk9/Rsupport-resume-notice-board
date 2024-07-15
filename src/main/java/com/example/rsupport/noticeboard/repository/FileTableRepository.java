@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface FileTableRepository extends JpaRepository<FileTable, Long> {
     List<FileTable> findByNoticeBoard(Notice notice);
+    void deleteAllByNoticeBoard(Notice notice);
 }

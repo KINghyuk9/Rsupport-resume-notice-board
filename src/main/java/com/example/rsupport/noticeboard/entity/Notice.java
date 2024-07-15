@@ -7,9 +7,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -45,7 +47,8 @@ public class Notice {
 
     @OneToMany(mappedBy = "noticeBoard", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("noticeBoard")
-    private List<FileTable> files;
+    @ToString.Exclude
+    private List<FileTable> files = new ArrayList<>();
 
     private Notice(NoticeCreateRequestDTO request, PasswordEncoder encoder){
         this.title = request.getTitle();
@@ -72,4 +75,5 @@ public class Notice {
     public void incrementViews(){
         this.views++;
     }
+
 }

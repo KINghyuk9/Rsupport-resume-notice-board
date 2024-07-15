@@ -3,11 +3,11 @@ package com.example.rsupport.noticeboard.controller;
 import com.example.rsupport.noticeboard.common.ApiResult;
 import com.example.rsupport.noticeboard.dto.request.NoticeCreateRequestDTO;
 import com.example.rsupport.noticeboard.dto.request.NoticeDeleteRequestDTO;
+import com.example.rsupport.noticeboard.dto.request.NoticeUpdateRequestDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeDetailResponseDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeResponseDTO;
 import com.example.rsupport.noticeboard.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,6 +83,18 @@ public class NoticeController {
             return ApiResult.ok(noticeList);
         } catch (IllegalArgumentException e) {
             return ApiResult.error(e.getMessage(), "E1003", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/update")
+    @Operation(summary = "공지사항 수정", description = "공지사항 수정")
+    public ResponseEntity<ApiResult> updateNotice(
+            @ModelAttribute NoticeUpdateRequestDTO noticeUpdateRequestDTO) {
+        try {
+            noticeService.updateNotice(noticeUpdateRequestDTO);
+            return ApiResult.ok("공지사항이 수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ApiResult.error(e.getMessage(), "E1001", HttpStatus.BAD_REQUEST);
         }
     }
 

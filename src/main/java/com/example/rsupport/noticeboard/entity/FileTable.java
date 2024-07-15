@@ -26,12 +26,9 @@ public class FileTable {
     @JsonIgnoreProperties("files")
     private Notice noticeBoard;
 
-    public FileTable(String fileName, String filePath) {
+    public FileTable(String fileName, String filePath, Notice noticeBoard) {
         this.fileName = fileName;
         this.filePath = filePath;
-    }
-
-    public void setNoticeBoard(Notice noticeBoard) {
         this.noticeBoard = noticeBoard;
     }
 }

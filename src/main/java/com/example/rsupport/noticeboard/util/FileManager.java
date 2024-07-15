@@ -1,4 +1,4 @@
-package com.example.rsupport.noticeboard.common;
+package com.example.rsupport.noticeboard.util;
 
 import com.example.rsupport.noticeboard.dto.common.FileSaveResultDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,5 +38,19 @@ public class FileManager {
                     .build());
         }
         return resultList;
+    }
+
+    public void deleteFile(String filePath) {
+        try {
+            Files.deleteIfExists(Paths.get(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void deleteFiles(List<String> filePaths) {
+        for (String filePath : filePaths) {
+            deleteFile(filePath);
+        }
     }
 }
