@@ -42,3 +42,13 @@ cd rsupport-resume-notice-board
     - [ ]  공지사항 상세 조회
     - [ ]  공지사항 조건 조회
 - [ ]  공지사항 수정
+| API 명 | 상세 | type |
+| --- | --- | --- |
+| 공지사항 등록 | /board/notice/create | POST |
+| 공지사항 삭제 | /board/notice/delete/{noticeId}/{userId} | DELETE |
+| 공지사항 조회 | - 공지사항 조건 검색
+/board/notice/search-with-condition
+
+- 공지사항 상세 조회
+/board/notice/search-notice-detail/{noticeId} | GET |
+| 공지사항 수정 | /board/notice/update | PUT |
