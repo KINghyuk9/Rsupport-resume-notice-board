@@ -41,7 +41,7 @@ public class ApiResult {
         return ResponseEntity.ok(new ApiResult(true, "success", "200", result));
     }
 
-    public static ResponseEntity<ApiResult> error(String message, String code, HttpStatus status) {
-        return ResponseEntity.status(status).body(new ApiResult(false, message, code, null));
+    public static ResponseEntity<ApiResult> error(Object data, String code, HttpStatus status) {
+        return ResponseEntity.status(status).body(new ApiResult(false, "error", code, data));
     }
 }

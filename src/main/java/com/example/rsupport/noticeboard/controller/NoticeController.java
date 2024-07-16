@@ -32,7 +32,7 @@ public class NoticeController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "공지사항 등록", description = "공지사항 등록")
     public ResponseEntity<ApiResult> createNotice(
-            @RequestPart(value = "files", required = false)MultipartFile[] files,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
             @Valid @RequestPart NoticeCreateRequestDTO noticeCreateRequestDTO) {
         NoticeCreateResponseDTO responseDTO = noticeService.createNotice(noticeCreateRequestDTO, files);
         return ApiResult.ok(responseDTO);

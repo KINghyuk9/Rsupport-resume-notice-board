@@ -1,10 +1,12 @@
 package com.example.rsupport.noticeboard.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -12,18 +14,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NoticeCreateRequestDTO {
-    @NotBlank
+    @NotBlank(message = "제목을 입력해주세요.")
     private String title;
-    @NotBlank
+    @NotBlank(message = "내용을 입력해주세요.")
     private String content;
-    @NotBlank
+    @NotBlank(message = "작성자를 입력해주세요.")
     private String author;
-    @NotBlank
+    @NotBlank(message = "작성자 아이디를 입력해주세요.")
     private String userId;
-    @NotBlank
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull(message = "시작일을 입력해주세요.")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(type = "string", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startDate;
-    @NotBlank
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @NotNull(message = "종료일을 입력해주세요.")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @Schema(type = "string", pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime endDate;
 }

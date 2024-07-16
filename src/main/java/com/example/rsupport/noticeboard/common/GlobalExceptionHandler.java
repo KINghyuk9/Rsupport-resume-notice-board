@@ -3,13 +3,23 @@ package com.example.rsupport.noticeboard.common;
 import com.example.rsupport.noticeboard.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
-import javax.annotation.processing.FilerException;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        Map<String, String> errors = new HashMap<>();
+        e.getBindingResult().getFieldErrors().forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(NoticeNotFoundException.class)
     public ResponseEntity<ApiResult> handleNoticeNotFoundException(NoticeNotFoundException e) {
@@ -24,6 +34,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileSaveException.class)
     public ResponseEntity<ApiResult> handleFilerException(FileSaveException e) {
         return ApiResult.error(e.getMessage(), "FILER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(NoticeCreateException.class)
+    public ResponseEntity<ApiResult> handleNoticeCreateException(NoticeCreateException e) {
+        return ApiResult.error(e.getMessage(), "NOTICE_CREATE_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(NoticeDeleteException.class)

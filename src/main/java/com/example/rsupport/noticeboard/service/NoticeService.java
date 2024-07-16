@@ -47,38 +47,36 @@ public class NoticeService {
 
     @Transactional
     public NoticeCreateResponseDTO createNotice(NoticeCreateRequestDTO dto, MultipartFile[] files) {
-        try {
-            Notice createNotice = Notice.from(dto);
+        Notice createNotice = Notice.from(dto);
 
-            if (files != null && files.length > 0) {
-                List<FileSaveResultDTO> savedFiles;
-                try {
-                    savedFiles = fileManager.saveFile(files);
-                } catch (Exception e) {
-                    throw new FileSaveException("file save failed.");
-                }
-
-                List<FileTable> fileTables = savedFiles.stream()
-                        .map(file -> new FileTable(file.getFileName(), file.getFilePath(), createNotice))
-                        .toList();
-
-                createNotice.setFiles(fileTables);
+        if (files != null && files.length > 0) {
+            try {
+                addNewFiles(files, createNotice);
+            } catch (Exception e) {
+                logger.error("파일 저장 중 문제가 발생하였습니다.", e);
+                throw new FileSaveException("file save failed.");
             }
-            Notice savedNotice = noticeRepository.save(createNotice);
-            return new NoticeCreateResponseDTO(savedNotice);
+        }
+
+        Notice savedNotice;
+        try {
+            savedNotice = noticeRepository.save(createNotice);
         } catch (Exception e) {
+            logger.error("공지사항 등록 중 문제가 발생하였습니다.", e);
             throw new NoticeCreateException("공지사항 등록 중 문제가 발생하였습니다.");
         }
+
+        return new NoticeCreateResponseDTO(savedNotice);
     }
 
     @Transactional
     public void deleteNotice(Long noticeId, String userId) {
-        try {
-            Notice notice = noticeRepository.findById(noticeId)
-                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
-            userIdChecker(notice, userId);
 
-            List<FileTable> fileTables = notice.getFiles();
+        Notice notice = getNoticeById(noticeId);
+        userIdChecker(notice, userId);
+        List<FileTable> fileTables = notice.getFiles();
+
+        try {
             if (fileTables != null && !fileTables.isEmpty()) {
                 fileTableRepository.deleteAll(fileTables);
                 deleteExistingFiles(notice);
@@ -95,21 +93,13 @@ public class NoticeService {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public NoticeDetailResponseDTO getNoticeDetail(Long noticeId, HttpServletRequest request) {
+        Notice notice = getNoticeById(noticeId);
+
         try {
-            Notice notice = noticeRepository.findById(noticeId)
-                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
-            if(notice == null){
-                throw new NoticeNotFoundException("공지사항을 찾을 수 없습니다.");
-            }
-            HttpSession session = request.getSession();
-            String viewedKey = "viewed_notice_" + noticeId;
-            Boolean isViewed = (Boolean) session.getAttribute(viewedKey);
-            if (isViewed == null || !isViewed) {
-                notice.incrementViews();
-                noticeRepository.save(notice);
-                session.setAttribute(viewedKey, true);}
+            notice.incrementViews();
+            noticeRepository.save(notice);
 
             return new NoticeDetailResponseDTO(notice);
         } catch (Exception e) {
@@ -132,8 +122,7 @@ public class NoticeService {
     @Transactional
     public NoticeUpdateResponseDTO updateNotice(NoticeUpdateRequestDTO dto, MultipartFile[] files) {
         try {
-            Notice notice = noticeRepository.findById(dto.getNoticeId())
-                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
+            Notice notice = getNoticeById(dto.getNoticeId());
             userIdChecker(notice, dto.getUserId());
             deleteExistingFiles(notice);
             updateNoticeDetails(dto, notice);
@@ -149,6 +138,11 @@ public class NoticeService {
             logger.error("파일 처리 중 문제가 발생하였습니다.", e);
             throw new IllegalArgumentException("파일 처리 중 문제가 발생하였습니다.", e);
         }
+    }
+
+    private Notice getNoticeById(Long noticeId) {
+        return noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
     }
 
     private void userIdChecker(Notice notice, String userId) {
