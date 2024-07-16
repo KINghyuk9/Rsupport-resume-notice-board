@@ -8,9 +8,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 
 @Repository
-public interface NoticeRepository extends JpaRepository<Notice, Long>, JpaSpecificationExecutor<Notice>, QuerydslPredicateExecutor<Notice>, NoticeRepositoryCustom{
+public interface NoticeRepository extends JpaRepository<Notice, Long>,  NoticeRepositoryCustom{
     Page<Notice> findAll(Pageable pageable);
 }

@@ -6,7 +6,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,31 +15,32 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom {
-    @Autowired
-    private JPAQueryFactory jpaQueryFactory;
+
+    private final JPAQueryFactory jpaQueryFactory;
+    private static final QNotice qNotice = QNotice.notice;
 
     @Override
     public Notice getNoticeDetail(Long id) {
-        return jpaQueryFactory.selectFrom(QNotice.notice)
-                .where(QNotice.notice.noticeId.eq(id))
+        return jpaQueryFactory.selectFrom(qNotice)
+                .where(qNotice.noticeId.eq(id))
                 .fetchOne();
     }
 
     @Override
     public Page<Notice> getNoticeSearch(String searchType, String keyword, Pageable pageable) {
-        QNotice notice = QNotice.notice;
         BooleanBuilder booleanBuilder = new BooleanBuilder();
 
         if ("title".equals(searchType)) {
-            booleanBuilder.and(notice.title.containsIgnoreCase(keyword));
+            booleanBuilder.and(qNotice.title.containsIgnoreCase(keyword));
         } else if ("content".equals(searchType)) {
-            booleanBuilder.and(notice.content.containsIgnoreCase(keyword));
+            booleanBuilder.and(qNotice.content.containsIgnoreCase(keyword));
         } else if ("author".equals(searchType)) {
-            booleanBuilder.and(notice.author.containsIgnoreCase(keyword));
+            booleanBuilder.and(qNotice.author.containsIgnoreCase(keyword));
         }
 
-        JPQLQuery<Notice> query = jpaQueryFactory.selectFrom(notice)
+        JPQLQuery<Notice> query = jpaQueryFactory.selectFrom(qNotice)
                 .where(booleanBuilder);
 
         List<Notice> notices = query.offset((long) pageable.getPageNumber() * pageable.getPageSize())
@@ -54,10 +55,10 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom {
     @Override
     @Transactional
     public void updateNotice(Notice notice) {
-        jpaQueryFactory.update(QNotice.notice)
-                .where(QNotice.notice.noticeId.eq(notice.getNoticeId()))
-                .set(QNotice.notice.title, notice.getTitle())
-                .set(QNotice.notice.content, notice.getContent())
+        jpaQueryFactory.update(qNotice)
+                .where(qNotice.noticeId.eq(notice.getNoticeId()))
+                .set(qNotice.title, notice.getTitle())
+                .set(qNotice.content, notice.getContent())
                 .execute();
     }
 }
