@@ -61,6 +61,7 @@ public class NoticeService {
         Notice savedNotice;
         try {
             savedNotice = noticeRepository.save(createNotice);
+            logger.info("공지사항 등록 성공.");
         } catch (Exception e) {
             logger.error("공지사항 등록 중 문제가 발생하였습니다.", e);
             throw new NoticeCreateException("공지사항 등록 중 문제가 발생하였습니다.");
@@ -94,7 +95,7 @@ public class NoticeService {
     }
 
     @Transactional
-    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId, HttpServletRequest request) {
+    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId) {
         Notice notice = getNoticeById(noticeId);
 
         try {

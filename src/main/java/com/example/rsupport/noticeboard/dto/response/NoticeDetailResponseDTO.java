@@ -16,4 +16,42 @@ import java.util.List;
 public class NoticeDetailResponseDTO {
 
     private Notice notice;
+
+    public Long getNoticeId() {
+        return notice.getNoticeId();
+    }
+
+    public String getTitle() {
+        return notice.getTitle();
+    }
+
+    public String getContent() {
+        return notice.getContent();
+    }
+
+    public String getAuthor() {
+        return notice.getAuthor();
+    }
+
+    public String getUserId() {
+        return notice.getUserId();
+    }
+
+    public LocalDateTime getStartDate() {
+        return notice.getStartDate();
+    }
+
+    public LocalDateTime getEndDate() {
+        return notice.getEndDate();
+    }
+
+    public int getViews() {
+        return notice.getViews();
+    }
+
+    public List<FileListDTO> getFiles() {
+        return notice.getFiles().stream()
+                .map(file -> new FileListDTO(file.getFileId(), file.getFileName()))
+                .toList();
+    }
 }

@@ -51,8 +51,8 @@ public class NoticeController {
     @GetMapping("/search-notice-detail/{noticeId}")
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세 조회")
     public ResponseEntity<ApiResult> getNoticeDetail(
-            @PathVariable("noticeId") Long id, HttpServletRequest request) {
-        NoticeDetailResponseDTO notice = noticeService.getNoticeDetail(id, request);
+            @PathVariable("noticeId") Long id) {
+        NoticeDetailResponseDTO notice = noticeService.getNoticeDetail(id);
         return ApiResult.ok(notice);
     }
 
