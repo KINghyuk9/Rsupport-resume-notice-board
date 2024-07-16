@@ -13,16 +13,12 @@ import com.example.rsupport.noticeboard.entity.FileTable;
 import com.example.rsupport.noticeboard.entity.Notice;
 import com.example.rsupport.noticeboard.repository.FileTableRepository;
 import com.example.rsupport.noticeboard.repository.NoticeRepository;
-import com.example.rsupport.noticeboard.specification.NoticeSpecification;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 

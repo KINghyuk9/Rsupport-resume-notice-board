@@ -149,7 +149,13 @@ class NoticeServiceTest {
         NoticeDetailResponseDTO responseDTO = noticeService.getNoticeDetail(noticeId);
 
         // then
-        assertNoticeEquals(notice, responseDTO);
+        assertEquals(notice.getNoticeId(), responseDTO.getNotice().getNoticeId());
+        assertEquals(notice.getTitle(), responseDTO.getNotice().getTitle());
+        assertEquals(notice.getContent(), responseDTO.getNotice().getContent());
+        assertEquals(notice.getAuthor(), responseDTO.getNotice().getAuthor());
+        assertEquals(notice.getUserId(), responseDTO.getNotice().getUserId());
+        assertEquals(notice.getStartDate(), responseDTO.getNotice().getStartDate());
+        assertEquals(notice.getEndDate(), responseDTO.getNotice().getEndDate());
     }
 
     @Test
@@ -219,15 +225,6 @@ class NoticeServiceTest {
     private void assertNoticeEquals(Notice expected, Object actual) {
         if (actual instanceof NoticeCreateResponseDTO) {
             NoticeCreateResponseDTO actualDTO = (NoticeCreateResponseDTO) actual;
-            assertEquals(expected.getNoticeId(), actualDTO.getNoticeId(), "NoticeId should match");
-            assertEquals(expected.getTitle(), actualDTO.getTitle(), "Title should match");
-            assertEquals(expected.getContent(), actualDTO.getContent(), "Content should match");
-            assertEquals(expected.getAuthor(), actualDTO.getAuthor(), "Author should match");
-            assertEquals(expected.getUserId(), actualDTO.getUserId(), "UserId should match");
-            assertEquals(expected.getStartDate(), actualDTO.getStartDate(), "StartDate should match");
-            assertEquals(expected.getEndDate(), actualDTO.getEndDate(), "EndDate should match");
-        } else if (actual instanceof NoticeDetailResponseDTO) {
-            NoticeDetailResponseDTO actualDTO = (NoticeDetailResponseDTO) actual;
             assertEquals(expected.getNoticeId(), actualDTO.getNoticeId(), "NoticeId should match");
             assertEquals(expected.getTitle(), actualDTO.getTitle(), "Title should match");
             assertEquals(expected.getContent(), actualDTO.getContent(), "Content should match");

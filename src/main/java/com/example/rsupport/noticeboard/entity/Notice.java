@@ -4,11 +4,7 @@ import com.example.rsupport.noticeboard.dto.request.NoticeCreateRequestDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
