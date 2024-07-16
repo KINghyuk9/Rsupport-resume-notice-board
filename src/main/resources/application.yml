@@ -5,7 +5,7 @@ server:
 
 file:
   save:
-    path: C:\Program Files\workplace\FileTmp
+    path: C:\Program Files\workplace
 
 spring:
   datasource:
@@ -19,9 +19,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
 
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+
