@@ -9,6 +9,7 @@ import com.example.rsupport.noticeboard.dto.response.NoticeResponseDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeUpdateResponseDTO;
 import com.example.rsupport.noticeboard.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,8 +51,8 @@ public class NoticeController {
     @GetMapping("/search-notice-detail/{noticeId}")
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세 조회")
     public ResponseEntity<ApiResult> getNoticeDetail(
-            @PathVariable("noticeId") Long id) {
-        NoticeDetailResponseDTO notice = noticeService.getNoticeDetail(id);
+            @PathVariable("noticeId") Long id, HttpServletRequest request) {
+        NoticeDetailResponseDTO notice = noticeService.getNoticeDetail(id, request);
         return ApiResult.ok(notice);
     }
 

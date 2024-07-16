@@ -14,6 +14,8 @@ import com.example.rsupport.noticeboard.entity.Notice;
 import com.example.rsupport.noticeboard.repository.FileTableRepository;
 import com.example.rsupport.noticeboard.repository.NoticeRepository;
 import com.example.rsupport.noticeboard.specification.NoticeSpecification;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +54,7 @@ public class NoticeService {
                 List<FileSaveResultDTO> savedFiles;
                 try {
                     savedFiles = fileManager.saveFile(files);
-                } catch (Exception e){
+                } catch (Exception e) {
                     throw new FileSaveException("file save failed.");
                 }
 
@@ -65,7 +67,7 @@ public class NoticeService {
             Notice savedNotice = noticeRepository.save(createNotice);
             return new NoticeCreateResponseDTO(savedNotice);
         } catch (Exception e) {
-            throw new IllegalArgumentException("공지사항 등록 중 문제가 발생하였습니다.");
+            throw new NoticeCreateException("공지사항 등록 중 문제가 발생하였습니다.");
         }
     }
 
@@ -94,12 +96,20 @@ public class NoticeService {
     }
 
     @Transactional(readOnly = true)
-    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId) {
+    public NoticeDetailResponseDTO getNoticeDetail(Long noticeId, HttpServletRequest request) {
         try {
             Notice notice = noticeRepository.findById(noticeId)
-                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다. ID: " + noticeId));
-            notice.incrementViews();
-            noticeRepository.save(notice);
+                    .orElseThrow(() -> new NoticeNotFoundException("공지사항을 찾을 수 없습니다."));
+            if(notice == null){
+                throw new NoticeNotFoundException("공지사항을 찾을 수 없습니다.");
+            }
+            HttpSession session = request.getSession();
+            String viewedKey = "viewed_notice_" + noticeId;
+            Boolean isViewed = (Boolean) session.getAttribute(viewedKey);
+            if (isViewed == null || !isViewed) {
+                notice.incrementViews();
+                noticeRepository.save(notice);
+                session.setAttribute(viewedKey, true);}
 
             return new NoticeDetailResponseDTO(notice);
         } catch (Exception e) {
@@ -111,9 +121,8 @@ public class NoticeService {
     @Transactional(readOnly = true)
     public Page<NoticeResponseDTO> getNoticeSearch(String searchType, String keyword, Pageable pageable) {
         try {
-            Specification<Notice> spec = NoticeSpecification.search(searchType, keyword);
-            return noticeRepository.findAll(spec, pageable)
-                    .map(NoticeResponseDTO::fromNotice);
+            Page<Notice> noticePage = noticeRepository.getNoticeSearch(searchType, keyword, pageable);
+            return noticePage.map(NoticeResponseDTO::fromNotice);
         } catch (Exception e) {
             logger.error("공지사항 조건 검색 중 문제가 발생했습니다.", e);
             throw new NoticeSearchException("공지사항 조건 검색 중 문제가 발생했습니다.");
@@ -131,8 +140,8 @@ public class NoticeService {
             if (files != null && files.length > 0) {
                 addNewFiles(files, notice);
             }
-            Notice updatedNotice = noticeRepository.save(notice);
-            return new NoticeUpdateResponseDTO(updatedNotice);
+            noticeRepository.updateNotice(notice);
+            return new NoticeUpdateResponseDTO(notice);
         } catch (UserIdMismatchException e){
             logger.error("작성자만 삭제할 수 있습니다.", e);
             throw e;
