@@ -9,7 +9,6 @@ import com.example.rsupport.noticeboard.dto.response.NoticeResponseDTO;
 import com.example.rsupport.noticeboard.dto.response.NoticeUpdateResponseDTO;
 import com.example.rsupport.noticeboard.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
